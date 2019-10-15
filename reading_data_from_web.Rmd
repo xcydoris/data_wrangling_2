@@ -1,0 +1,114 @@
+---
+title: "reading_data_from_web"
+author: "Chuyue Xiang"
+date: "10/10/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(rvest)
+library(httr)
+```
+
+## get some data
+
+```{r}
+url = "http://samhda.s3-us-gov-west-1.amazonaws.com/s3fs-public/field-uploads/2k15StateFiles/NSDUHsaeShortTermCHG2015.htm"
+
+drug_use_xml = 
+  read_html(url) %>%
+  
+table_list = drug_use_xml %>% html_nodes(css = "table") %>%
+table_list[[1]] %>%
+  html_table() %>%
+  slice(-1)
+  as_tibble()
+```
+
+## get Harry Porter data
+
+```{r}
+hpsaga_html = 
+  read_html("https://www.imdb.com/list/ls000630791/")
+```
+
+```{r}
+hp_movies_names = 
+hpsaga_html %>%
+  html_nodes(".lister-item-header a") %>%
+  html_text()
+  
+hp_movies_runtime = 
+  hpsaga_html %>%
+  html_nodes(".runtime") %>%
+  html_text()
+
+hp_movies_money = 
+  hpsaga_html %>%
+  html_nodes(".ghost~ .text-muted+ span") %>%
+  html_text()
+
+hpsaga_df = 
+  tibble(
+    title = title_vec,
+    rev = gross_rev_vec,
+    runtime = runtime_vec)
+```
+
+
+
+```{r}
+url = "https://www.amazon.com/product-reviews/B00005JNBQ/ref=cm_cr_arp_d_viewopt_rvwer?ie=UTF8&reviewerType=avp_only_reviews&sortBy=recent&pageNumber=1"
+
+dynamite_html = read_html(url)
+
+review_titles = 
+  dynamite_html %>%
+  html_nodes(".a-text-bold span") %>%
+  html_text()
+
+review_stars = 
+  dynamite_html %>%
+  html_nodes("#cm_cr-review_list .review-rating") %>%
+  html_text()
+
+review_text = 
+  dynamite_html %>%
+  html_nodes(".review-text-content span") %>%
+  html_text()
+
+reviews = tibble(
+  title = review_titles,
+  stars = review_stars,
+  text = review_text
+)
+```
+
+## use a API
+
+```{r}
+nyc_water_df = 
+  GET("https://data.cityofnewyork.us/resource/ia2d-e54m.csv") %>%
+  content()
+```
+
+```{r}
+nyc_water_df = 
+  GET("https://data.cityofnewyork.us/resource/ia2d-e54m.json") %>%
+  content()
+```
+
+```{r}
+poke = 
+  GET("http://pokeapi.co/api/v2/pokemon/1") %>%
+  content()
+
+poke$name
+poke$abilities
+```
+
